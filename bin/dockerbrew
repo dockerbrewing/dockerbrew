@@ -1,0 +1,47 @@
+#!/usr/bin/env bash
+
+export PATH="$DOCKERBREW_ROOT/lib:$PATH"
+source "$DOCKERBREW_ROOT/lib/bash+.bash"
+bash+:import :std can
+use GetOpt
+
+GETOPT_SPEC="\
+  $(basename $0) <command> <options> <arguments>
+
+Common commands:
+  use       Use a dockerbrew command set
+  search    Search for dockerbrew command sets
+
+See '$(basename $0) help' for more help.
+
+Options:
+--
+h           Show the command summary
+help        Browse the complete '$(basename $0)' documentation
+ 
+q,quiet     Show minimal output
+v,verbose   Show verbose output
+ 
+x,debug     Debug - Turn on Bash trace (set -x) output
+"
+
+main() {
+  set -x
+  [[ $1 == eval ]] && check-eval "$@"
+
+  echo "No such command '$1'"
+  return 1
+}
+
+check-eval() {
+  shift
+  GETOPT_ARGS='command @arguments' \
+    getopt "$@"
+  [[ $command == use ]] || exit 1
+
+  local cmd="${arguments[0]}"
+  echo "$cmd() { docker run -it brew/$cmd; }"
+  exit 0
+}
+
+[[ $0 != "$BASH_SOURCE" ]] || main "$@"

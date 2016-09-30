@@ -1,0 +1,5 @@
+if [[ -n ${ZSH_VERSION-} ]]; then
+  source "$(cd "$(dirname "$0")"; pwd)"/.rc.zsh
+else
+  source "$(cd "$(dirname "$BASH_SOURCE")"; pwd)"/.rc.bash
+fi
