@@ -2,3 +2,13 @@
 * https://linux.die.net/man/1/cowsay
 * https://github.com/schacon/cowsay
 * https://docs.docker.com/engine/reference/builder/#label
+
+== Brews
+
+* bytebeat
+* asciio
+* perl:5.xx
+* cowsay
+* tor-browser
+* figlet
+* zild
