@@ -120,4 +120,8 @@ getopt() {
   [ $# -eq 0 ] || die "Unexpected arguments: '$@'"
 }
 
+pager() {
+  less -FRX
+}
+
 # vim: set ft=sh lisp:

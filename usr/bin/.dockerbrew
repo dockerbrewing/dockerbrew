@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+
+main() {
+  local name="$(basename $0)"
+  [[ $name != .dockerbrew ]] || return 0
+  local image="brew/$name"
+  local opts="$(
+    docker inspect -f "{{index .Config.Labels \"com.dockerbrew.run.options\"}}" $image
+  )"
+  docker run ${opts:+$opts }${image} $@
+}
+
+main "$@"

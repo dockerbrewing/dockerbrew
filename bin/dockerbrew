@@ -9,8 +9,17 @@ GETOPT_SPEC="\
   $(basename $0) <command> <options> <arguments>
 
 Common commands:
-  use       Use a dockerbrew command set
-  search    Search for dockerbrew command sets
+  use       Use a dockerbrew app in your current shell
+  run       Run a dockerbrew app directly
+  cmd       Print the 'docker run' command for an app
+  get       Pull docker image for a dockerbrew app
+  install   Install a dockerbrew app into PATH
+  uninstall Uninstall a dockerbrew app from PATH
+  list      Show installed dockerbrew apps
+  info      Show info about a dockerbrew app
+  search    Search for dockerbrew apps
+  update    Get latest dockerbrew app registry
+  upgrade   Update the dockerbrew software itself
 
 See '$(basename $0) help' for more help.
 
@@ -19,29 +28,217 @@ Options:
 h           Show the command summary
 help        Browse the complete '$(basename $0)' documentation
  
-q,quiet     Show minimal output
-v,verbose   Show verbose output
+as=         Alernate name for 'use' and 'install' command
  
 x,debug     Debug - Turn on Bash trace (set -x) output
 "
 
 main() {
-  set -x
-  [[ $1 == eval ]] && check-eval "$@"
+  if [[ $1 == check ]]; then
+    check "$@"
+  fi
 
-  echo "No such command '$1'"
-  return 1
+  get-options "$@"
+  set -- "${arguments[@]}"
+
+  if can "cmd:$command"; then
+    "cmd:$command" "$@"
+  else
+    error "No such command '$1'."
+  fi
 }
 
-check-eval() {
+check() {
   shift
+  get-options "$@"
+  set -- "${arguments[@]}"
+
+  if [[ $command == use ]]; then
+    cmd:use "$@"
+    exit 123
+  fi
+
+  exit 0
+}
+
+cmd:help() {
+  error "'dockerbrew help' not yet implemented."
+}
+
+cmd:use() {
+  assert-ready
+  get-brew-name "$@"
+  assert-image-local
+  get-docker-run-cmd "$@"
+  local cmd="${option_as:-$name}"
+  echo "$cmd() { $docker_run_command \$@; }"
+}
+
+cmd:cmd() {
+  assert-ready
+  get-brew-name "$@"
+  get-docker-run-cmd "$name"
+  shift
+  echo "$docker_run_command $@"
+}
+
+cmd:run() {
+  assert-ready
+  get-brew-name "$@"
+  assert-image-local
+  get-docker-run-cmd "$name"
+  shift
+  $docker_run_command "$@"
+}
+
+cmd:get() {
+  assert-ready
+  get-brew-name "$@"
+  docker pull brew/$name
+}
+
+cmd:install() {
+  assert-ready
+  get-brew-name "$@"
+  assert-image-local
+  local bin="$DOCKERBREW_ROOT/usr/bin"
+
+  # XXX figure out how --as works here:
+  {
+    # local cmd="${option_as:-$name}"
+    cmd="$name"
+  }
+  (
+    cd $bin
+    ln -f .dockerbrew "$cmd"
+  )
+  say "Installed '$bin/$cmd'"
+}
+
+cmd:uninstall() {
+  assert-ready
+  NOCHECK=1 get-brew-name "$@"
+  local bin="$DOCKERBREW_ROOT/usr/bin"
+  [[ -e "$bin/$name" ]] ||
+    error "'$bin/$name' does not exist."
+  rm -f "$bin/$name"
+  say "Uninstalled '$bin/$name'"
+}
+
+cmd:list() {
+  error "'dockerbrew list' not yet implemented."
+}
+
+cmd:info() {
+  error "'dockerbrew info' not yet implemented."
+}
+
+cmd:search() {
+  assert-ready
+  local re="${1:-.}"
+  grep -i "$re" "$CORE/Index" || true
+}
+
+cmd:update() {
+  (
+    cd "$DOCKERBREW_ROOT"
+    if [[ -e usr/core ]]; then
+      (
+        cd usr/core
+        if git-clean; then
+          git pull --ff-only
+        else
+          error "'$DOCKERBREW_ROOT/usr/core' has unstaged changes. Can't update."
+        fi
+      )
+    else
+      git clone -b core .git usr/core
+    fi
+  )
+}
+
+cmd:upgrade() {
+  (
+    cd "$DOCKERBREW_ROOT"
+    if git-clean; then
+      git pull --ff-only
+    else
+      error "'$DOCKERBREW_ROOT' has unstaged changes. Can't upgrade."
+    fi
+  )
+}
+
+assert-ready() {
+  CORE="$DOCKERBREW_ROOT/usr/core"
+  [[ -e "$CORE" ]] ||
+    error "You need to run 'dockerbrew update' first."
+}
+
+assert-image-local() {
+  image-exists ||
+    error "No docker image 'brew/$name'. Try 'dockerbrew get $name'."
+}
+
+brew-exists() {
+  [[ -d "$DOCKERBREW_ROOT/usr/core/brew/$name" ]]
+}
+
+image-exists() {
+  docker inspect "brew/$name" &> /dev/null
+}
+
+git-clean() {
+  [[ "$(git diff --shortstat 2> /dev/null)" == '' ]]
+}
+
+get-brew-name() {
+  [[ $# -gt 0 ]] ||
+    error "Required brew name as first argument."
+  [[ $1 =~ ^[a-zA-Z0-9]+$ ]] ||
+    error "Invalid brew name: '$1'."
+  name="$1"
+  if [[ -z $NOCHECK ]]; then
+    brew-exists ||
+      error "Brew name '$1' not found. Try 'dockerbrew update'."
+  fi
+}
+
+get-docker-run-cmd() {
+  local image="brew/${1:?}"
+  local opts="$(
+    docker inspect -f "{{index .Config.Labels \"com.dockerbrew.run.options\"}}" $image
+  )"
+  docker_run_command="docker run ${opts:+$opts }${image}"
+}
+
+get-options() {
+  # 'run' command opts may conflict with dockerbrew opts:
+  if [[ $1 == run ]]; then
+    command="$1"
+    shift
+    arguments=("$@")
+    return
+  fi
+
   GETOPT_ARGS='command @arguments' \
     getopt "$@"
-  [[ $command == use ]] || exit 1
 
-  local cmd="${arguments[0]}"
-  echo "$cmd() { docker run -it brew/$cmd; }"
-  exit 0
+  if $option_debug; then
+    set -x
+  fi
+}
+
+error() {
+  echo "Error: $*"
+  exit 1
+}
+
+say() {
+  echo "$*"
+}
+
+warn() {
+  echo "$*" >&2
 }
 
 [[ $0 != "$BASH_SOURCE" ]] || main "$@"

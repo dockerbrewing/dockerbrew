@@ -5,10 +5,12 @@
 
 == Brews
 
-* bytebeat
 * asciio
-* perl:5.xx
+* bytebeat
 * cowsay
-* tor-browser
 * figlet
+* fortune
+* perl:5.xx
+* shellcheck
+* tor-browser
 * zild

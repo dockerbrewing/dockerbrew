@@ -1,5 +1,10 @@
-if [[ -n ${ZSH_VERSION-} ]]; then
+# TODO
+# - add fish support
+# - add completion support
+# - add manpage support
+
+if [[ -n $ZSH_VERSION ]]; then
   source "$(cd "$(dirname "$0")"; pwd)"/.rc.zsh
-else
+elif [[ -n $BASH_VERSION ]]; then
   source "$(cd "$(dirname "$BASH_SOURCE")"; pwd)"/.rc.bash
 fi

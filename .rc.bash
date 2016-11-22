@@ -3,18 +3,12 @@
 DOCKERBREW_ROOT="$BASH_SOURCE"
 [[ $DOCKERBREW_ROOT =~ ^/ ]] ||
   DOCKERBREW_ROOT="$PWD/$DOCKERBREW_ROOT"
-export DOCKERBREW_ROOT="$(cd "$(dirname $DOCKERBREW_ROOT)"; pwd)"
+DOCKERBREW_ROOT="$(cd "$(dirname $DOCKERBREW_ROOT)"; pwd)"
+export DOCKERBREW_ROOT
 
-dockerbrew() {
-  local command=
-  if command="$($DOCKERBREW_ROOT/bin/dockerbrew eval "$@")"; then
-    echo eval "$command"
-  else
-    "$DOCKERBREW_ROOT/bin/dockerbrew" "$@"
-  fi
-}
+source "$DOCKERBREW_ROOT/lib/dockerbrew.sh"
 
-export -f dockerbrew
+export MANPATH="$DOCKERBREW_ROOT/man:$DOCKERBREW_ROOT/usr/man${MANPATH:+:$MANPATH}"
+export PATH="$DOCKERBREW_ROOT/usr/bin:$PATH"
 
-export MANPATH="$DOCKERBREW_ROOT/man:${MANPATH-}"
 # source "$DOCKERBREW_ROOT/share/enable-completion.sh"

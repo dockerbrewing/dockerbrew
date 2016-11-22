@@ -3,6 +3,12 @@
 DOCKERBREW_ROOT="$0"
 [[ $DOCKERBREW_ROOT =~ ^/ ]] ||
   DOCKERBREW_ROOT="$PWD/$DOCKERBREW_ROOT"
-export DOCKERBREW_ROOT="$(cd "$(dirname $DOCKERBREW_ROOT)"; pwd)"
+DOCKERBREW_ROOT="$(cd "$(dirname $DOCKERBREW_ROOT)"; pwd)"
+export DOCKERBREW_ROOT
 
-echo "dockerbrew: zsh support coming soon"
+source "$DOCKERBREW_ROOT/lib/dockerbrew.sh"
+
+export MANPATH="$DOCKERBREW_ROOT/man:$DOCKERBREW_ROOT/usr/man${MANPATH:+:$MANPATH}"
+export PATH="$DOCKERBREW_ROOT/usr/bin:$PATH"
+
+# source "$DOCKERBREW_ROOT/share/enable-completion.sh"
