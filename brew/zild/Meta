@@ -1,0 +1,5 @@
+brew: 0.0.1
+name: zild
+desc: Perl CPAN Zilla::Dist CLI
+vers: 0.1.193
+repo: https://github.com/ingydotnet/zilla-dist-pm
