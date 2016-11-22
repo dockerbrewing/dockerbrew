@@ -157,7 +157,7 @@ cmd:update() {
         fi
       )
     else
-      local remote="$(git remote get-url origin)"
+      local remote="$(git config --get remote.origin.url)"
       (
         set -x
         git clone --branch=core "$remote" usr/core
