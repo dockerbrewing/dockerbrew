@@ -48,14 +48,14 @@ to run that container; setting all the appropriate flags and options for the
 This is the instructions for installing the dockerbrew command itself:
 
 ```
-git clone https://github.com/ingydotnet/dockerbrew
-source $PWD/dockerbrew/.rc.bash
+git clone https://github.com/dockerbrewing/dockerbrew
+source dockerbrew/.rc
 ```
 
 To make the installation permanent, add it to your shell startup file like:
 
 ```
-echo "source $PWD/dockerbrew/.rc" >> ~/.bashrc
+echo "source /path/to/dockerbrew/.rc" >> ~/.bashrc
 ```
 
 After installation you can start brewing new commands at will!
