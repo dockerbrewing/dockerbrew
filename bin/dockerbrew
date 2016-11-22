@@ -44,7 +44,7 @@ main() {
   if can "cmd:$command"; then
     "cmd:$command" "$@"
   else
-    error "No such command '$1'."
+    error "No such command '$command'."
   fi
 }
 
