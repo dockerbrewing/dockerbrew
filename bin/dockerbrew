@@ -142,17 +142,26 @@ cmd:search() {
 cmd:update() {
   (
     cd "$DOCKERBREW_ROOT"
+    echo "${PS4}cd $DOCKERBREW_ROOT"
     if [[ -e usr/core ]]; then
       (
-        cd usr/core
+        cd ./usr/core
+        echo "${PS4}cd ./usr/core"
         if git-clean; then
-          git pull --ff-only
+          (
+            set -x
+            git pull --ff-only origin core
+          )
         else
           error "'$DOCKERBREW_ROOT/usr/core' has unstaged changes. Can't update."
         fi
       )
     else
-      git clone -b core .git usr/core
+      local remote="$(git remote get-url origin)"
+      (
+        set -x
+        git clone --branch=core "$remote" usr/core
+      )
     fi
   )
 }
@@ -161,7 +170,11 @@ cmd:upgrade() {
   (
     cd "$DOCKERBREW_ROOT"
     if git-clean; then
-      git pull --ff-only
+      (
+        set -x
+        cd "$DOCKERBREW_ROOT"
+        git pull --ff-only origin master
+      )
     else
       error "'$DOCKERBREW_ROOT' has unstaged changes. Can't upgrade."
     fi
