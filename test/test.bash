@@ -33,4 +33,5 @@ after='type cowsay' \
 run dockerbrew install cowsay
 run dockerbrew uninstall cowsay
 run dockerbrew cmd cowsay Hi
+run dockerbrew cmd cowthink Hi
 run dockerbrew run cowsay Hi
