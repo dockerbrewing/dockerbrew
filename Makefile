@@ -1,8 +1,13 @@
 ALL_BREW := $(shell echo brew/*)
-ALL_META := $(ALL_BREW:%=%/Meta)
+ALL_BREW := $(ALL_BREW:brew/%=%)
+ALL_DATA := $(ALL_BREW:%=brew/%/Meta)
 ALL_BUILD := $(ALL_BREW:%=build-%)
 ALL_PUSH := $(ALL_BREW:%=push-%)
 ALL_SHELL := $(ALL_BREW:%=shell-%)
+ALL_INDEX := \
+    pkg-desc.tsv \
+    cmd-pkg.tsv
+ALL_INDEX := $(ALL_INDEX:%=index/%)
 
 NAME ?= $(shell basename $$PWD)
 # MADE := $(shell printf "0.0.1 "; date -u "+%Y%m%d-%H%M%S")
@@ -11,31 +16,39 @@ define HELP
 
 Makefile targets:
 
-    Index        - Rebuild the Index file
-    build-all    - Build all brew docker images
-    push-all     - Push all brew docker images
+    index        - Rebuild the index files
+    all-build    - Build all brew docker images
+    all-push     - Push all brew docker images
 
 endef
 export HELP
 
+# xxx:
+# 	echo $(ALL_BUILD)
+
 help:
 	@echo "$$HELP"
 
-Index: Makefile $(ALL_META)
-	./bin/generate-index $(ALL_META) > $@
+index: $(ALL_INDEX)
 
-build-all: $(ALL_BUILD)
+$(ALL_INDEX): Makefile $(ALL_DATA) node_modules bin/*
+	./bin/$(@:index/%.tsv=%) $(ALL_DATA) > $@
 
-push-all: $(ALL_PUSH)
+all-build: $(ALL_BUILD)
+
+all-push: $(ALL_PUSH)
 
 $(ALL_BUILD):
-	make -C $(@:build-%=%) -f ../../Makefile docker-build
+	make -C brew/$(@:build-%=%) -f ../../Makefile docker-build
 
 $(ALL_PUSH):
-	make -C $(@:push-%=%) -f ../../Makefile docker-push
+	make -C brew/$(@:push-%=%) -f ../../Makefile docker-push
 
 $(ALL_SHELL):
-	make -C $(@:shell-%=%) -f ../../Makefile docker-shell
+	make -C brew/$(@:shell-%=%) -f ../../Makefile docker-shell
+
+node_modules:
+	npm install .
 
 docker-build: print-header
 	docker build -t brew/$(NAME) .

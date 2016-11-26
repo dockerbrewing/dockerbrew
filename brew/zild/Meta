@@ -1,5 +1,25 @@
 brew: 0.0.1
 name: zild
 desc: Perl CPAN Zilla::Dist CLI
-vers: 0.1.193
-repo: https://github.com/ingydotnet/zilla-dist-pm
+
+cmds:
+  zild: /usr/local/bin/zild -v $PWD:/work
+
+make:
+  from: alpine:3.4
+  pkgs:
+  - bash
+  - -build-base
+  - -curl
+  - git
+  - openssl
+  - -openssl-dev
+  - perl
+  - -perl-dev
+  - -wget
+  make:
+  - cpanm: Zilla::Dist
+  - rm: /root/.cpanm
+  work: /work
+  vars:
+    PERL5LIB: /local

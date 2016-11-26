@@ -1,5 +1,13 @@
 brew: 0.0.1
 name: sl
 desc: Steam Locomotive
-vers: 0.1.193
-repo: https://github.com/ingydotnet/zilla-dist-pm
+
+cmds:
+  sl: /sl/sl -it -e LINES:$LINES -e COLUMNS:$COLUMNS
+
+make:
+  from: alpine:3.4
+  pkgs: [-build-base, -git, ncurses-dev]
+  make:
+  - repo: https://github.com/mtoyoda/sl
+    make: make

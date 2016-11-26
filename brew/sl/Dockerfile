@@ -1,11 +1,15 @@
-FROM ubuntu
+FROM alpine:3.4
 
-RUN apt-get update \
- && apt-get install -y sl
-
-ENTRYPOINT ["/usr/games/sl"]
+RUN apk update \
+ && apk add build-base git ncurses-dev \
+ && git clone https://github.com/mtoyoda/sl \
+ && (cd /sl && make) \
+ && apk del build-base git \
+ && rm -fr /var/cache/apk \
+ && true
 
 LABEL \
-    com.dockerbrew.pkg.name="sl" \
-    com.dockerbrew.run.options="-t" \
-    com.dockerbrew.api.version="0.0.1"
+    com.dockerbrew.name="sl" \
+    com.dockerbrew.cmds.sl.path="/sl/sl" \
+    com.dockerbrew.cmds.sl.opts="-it -e LINES:\$LINES -e COLUMNS:\$COLUMNS" \
+    com.dockerbrew.brew="0.0.1"

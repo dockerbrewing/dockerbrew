@@ -4,5 +4,6 @@ require '../lib/prelude'
 printf = require 'printf'
 
 for name in process.argv[2..]
-  {name, desc} = load_yaml_file name
-  out printf "%-20s %s\n", name, desc
+  {name, cmds} = load_yaml_file name
+  for cmd of cmds
+    out "#{cmd}\t#{name}\n"

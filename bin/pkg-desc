@@ -1,0 +1,8 @@
+#!/usr/bin/env coffee
+
+require '../lib/prelude'
+printf = require 'printf'
+
+for name in process.argv[2..]
+  {name, desc} = load_yaml_file name
+  out "#{name}\t#{desc}\n"

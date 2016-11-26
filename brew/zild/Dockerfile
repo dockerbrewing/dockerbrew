@@ -1,21 +1,20 @@
-FROM perl:5.24
+FROM alpine:3.4
 
-RUN cpanm -n Zilla::Dist
+RUN apk update \
+ && apk add bash build-base curl git openssl openssl-dev perl perl-dev wget \
+ && curl -L https://cpanmin.us | perl - App::cpanminus \
+ && cpanm -n Zilla::Dist \
+ && apk del build-base openssl-dev perl-dev \
+ && rm -fr /var/cache/apk \
+ && rm -fr /root/.cpanm \
+ && true
 
-COPY $PWD/zilla-dist-pm /zilla-dist-pm
-
-RUN find /zilla-dist-pm
-
-RUN cd /zilla-dist-pm \
- && zild install
+LABEL \
+    com.dockerbrew.name="zild" \
+    com.dockerbrew.cmds.zild.path="/usr/local/bin/zild" \
+    com.dockerbrew.cmds.zild.opts="-v \$PWD:/work" \
+    com.dockerbrew.brew="0.0.1"
 
 WORKDIR /work
 
 ENV PERL5LIB /local
-
-ENTRYPOINT [ "/usr/local/bin/zild" ]
-
-LABEL \
-    com.dockerbrew.pkg.name="zild" \
-    com.dockerbrew.run.options="-v \$PWD:/work" \
-    com.dockerbrew.api.version="0.0.1"
