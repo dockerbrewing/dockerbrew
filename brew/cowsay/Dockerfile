@@ -13,6 +13,8 @@ LABEL \
     com.dockerbrew.name="cowsay" \
     com.dockerbrew.cmds.cowsay.path="/usr/local/bin/cowsay" \
     com.dockerbrew.cmds.cowsay.opts="-i" \
+    com.dockerbrew.cmds.cowthink.path="/usr/local/bin/cowthink" \
+    com.dockerbrew.cmds.cowthink.opts="-i" \
     com.dockerbrew.brew="0.0.1"
 
 #     com.dockerbrew.home="hub.docker.com/brew/cowsay" \
