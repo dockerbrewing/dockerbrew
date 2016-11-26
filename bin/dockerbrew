@@ -215,7 +215,7 @@ get-cmd-name() {
   [[ $1 =~ ^[a-zA-Z0-9]+$ ]] ||
     error "Invalid brew name: '$1'."
   name="$1"
-  pkg="$(grep "^$name"$'\t' usr/core/index/cmd-pkg.tsv | head -n1 | cut -f2)"
+  pkg="$(grep "^$name"$'\t' "$CORE/index/cmd-pkg.tsv" | head -n1 | cut -f2)"
   if [[ -z $NOCHECK ]]; then
     brew-exists ||
       error "Brew name '$1' not found. Try 'dockerbrew update'."
