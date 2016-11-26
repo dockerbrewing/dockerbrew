@@ -6,7 +6,7 @@ bash+:import :std can
 use GetOpt
 
 GETOPT_SPEC="\
-  $(basename $0) <command> <options> <arguments>
+  $(basename "$0") <command> <options> <arguments>
 
 Common commands:
   use       Use a dockerbrew app in your current shell
@@ -21,12 +21,12 @@ Common commands:
   update    Get latest dockerbrew app registry
   upgrade   Update the dockerbrew software itself
 
-See '$(basename $0) help' for more help.
+See '$(basename "$0") help' for more help.
 
 Options:
 --
 h           Show the command summary
-help        Browse the complete '$(basename $0)' documentation
+help        Browse the complete '$(basename "$0")' documentation
  
 as=         Alernate name for 'use' and 'install' command
  
@@ -79,7 +79,7 @@ cmd:cmd() {
   get-brew-name "$@"
   get-docker-run-cmd "$name"
   shift
-  echo "$docker_run_command $@"
+  echo "$docker_run_command $*"
 }
 
 cmd:run() {
@@ -94,7 +94,7 @@ cmd:run() {
 cmd:get() {
   assert-ready
   get-brew-name "$@"
-  docker pull brew/$name
+  docker pull "brew/$name"
 }
 
 cmd:install() {
@@ -109,7 +109,7 @@ cmd:install() {
     cmd="$name"
   }
   (
-    cd $bin
+    cd "$bin"
     ln -f .dockerbrew "$cmd"
   )
   say "Installed '$bin/$cmd'"
@@ -136,7 +136,12 @@ cmd:info() {
 cmd:search() {
   assert-ready
   local re="${1:-.}"
-  grep -i "$re" "$CORE/Index" || true
+  (grep -i "$re" "$CORE/index/pkg-desc.tsv" || true) | (
+    while read line; do
+      IFS=$'\t' list=($line)
+      printf "%-20s %s\n" "${list[0]}" "${list[1]}"
+    done
+  )
 }
 
 cmd:update() {
@@ -219,7 +224,7 @@ get-brew-name() {
 get-docker-run-cmd() {
   local image="brew/${1:?}"
   local opts="$(
-    docker inspect -f "{{index .Config.Labels \"com.dockerbrew.run.options\"}}" $image
+    docker inspect -f "{{index .Config.Labels \"com.dockerbrew.run.options\"}}" "$image"
   )"
   docker_run_command="docker run ${opts:+$opts }${image}"
 }
