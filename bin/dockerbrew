@@ -10,6 +10,7 @@ GETOPT_SPEC="\
 
 Common commands:
   use       Use a dockerbrew app in your current shell
+  off       Turn off a dockerbrew app in your current shell
   run       Run a dockerbrew app directly
   cmd       Print the 'docker run' command for an app
   get       Pull docker image for a dockerbrew app
@@ -56,6 +57,9 @@ check() {
   if [[ $command == use ]]; then
     cmd:use "$@"
     exit 123
+  elif [[ $command == off ]]; then
+    cmd:off "$@"
+    exit 123
   fi
 
   exit 0
@@ -71,7 +75,13 @@ cmd:use() {
   assert-image-local
   get-docker-run-cmd "$@"
   local cmd="${option_as:-$name}"
-  echo "$cmd() { ${docker_run_command[*]} \$@; }"
+  echo "$cmd() { ${docker_run_command[*]} \$@; } && echo dockerbrew cmd \\'$name\\' enabled"
+}
+
+cmd:off() {
+  assert-ready
+  get-cmd-name "$@"
+  echo "unset -f $name && echo dockerbrew cmd \\'$name\\' disabled"
 }
 
 cmd:cmd() {
@@ -233,7 +243,7 @@ get-docker-run-cmd() {
   local path="$(
     docker inspect -f "{{index .Config.Labels \"com.dockerbrew.cmds.$cmd.path\"}}" "$image"
   )"
-  docker_run_command=(docker run $opts --entrypoint=$path $image)
+  docker_run_command=(docker run --rm $opts --entrypoint=$path $image)
 }
 
 get-options() {
