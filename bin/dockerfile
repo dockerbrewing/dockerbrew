@@ -1,0 +1,71 @@
+#!/usr/bin/env coffee
+
+require '../lib/prelude'
+printf = require 'printf'
+
+data = load_yaml_file process.argv[2]
+{brew, name, cmds, make} = data
+vers = brew
+brew = cmds
+{from, pkgs, make, work, vars} = make
+install = pkgs.map (pkg)->
+  pkg.replace /^-/, ''
+uninstall = pkgs.filter (pkg)->
+  pkg.match /^-/
+uninstall = uninstall.map (pkg)->
+  pkg.replace /^-/, ''
+
+say "# DO NOT EDIT - This Dockerfile generated from Brewfile by DockerBrew"
+say ""
+
+say "FROM #{from}"
+say ""
+say "RUN apk update \\"
+say " && apk add #{install.join " "} \\"
+
+for step in make
+  {repo, cmds, cpanm, rm} = step
+  cmds = [cmds] if typeof(cmds) == 'string'
+  if repo?
+    say " && git clone #{repo} \\"
+    if cmds?
+      dir = repo.replace /.*\//, ''
+      dir = dir.replace /\.git$/, ''
+      for cmd in cmds
+        say " && (cd #{dir} && #{cmd}) \\"
+      say " && rm -fr #{dir} \\"
+  if cpanm?
+    say " && curl -L https://cpanmin.us | perl - App::cpanminus \\"
+    say " && cpanm -n #{cpanm} \\"
+
+  if rm?
+    say " && rm -fr #{rm} \\"
+
+
+if uninstall.length
+  say " && apk del #{uninstall.join " "} \\"
+say " && rm -fr /var/cache/apk \\"
+say " && true"
+
+say ""
+say "LABEL \\"
+say "    com.dockerbrew.name=\"#{name}\" \\"
+for name, data of brew
+  if typeof(data) == 'string'
+    m = data.match /^(\S+)\s+(.*)$/ or die
+    [path, opts] = m[1..2]
+  else
+    {path, opts} = data
+  opts = opts.replace /\$/g, '\\$'
+  say "    com.dockerbrew.cmds.#{name}.path=\"#{path}\" \\"
+  say "    com.dockerbrew.cmds.#{name}.opts=\"#{opts}\" \\"
+say "    com.dockerbrew.brew=\"#{vers}\""
+
+if work?
+  say ""
+  say "WORKDIR #{work}"
+
+if vars?
+  say ""
+  for key, val of vars
+    say "ENV #{key} #{val}"

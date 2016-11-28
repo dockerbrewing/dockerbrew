@@ -4,6 +4,7 @@ ALL_DATA := $(ALL_BREW:%=brew/%/Meta)
 ALL_BUILD := $(ALL_BREW:%=build-%)
 ALL_PUSH := $(ALL_BREW:%=push-%)
 ALL_SHELL := $(ALL_BREW:%=shell-%)
+ALL_DOCKERFILE := $(ALL_BREW:%=dockerfile-%)
 ALL_INDEX := \
     pkg-desc.tsv \
     cmd-pkg.tsv
@@ -24,7 +25,7 @@ endef
 export HELP
 
 # xxx:
-# 	echo $(ALL_BUILD)
+# 	echo $(ALL_DOCKERFILE)
 
 help:
 	@echo "$$HELP"
@@ -38,6 +39,8 @@ all-build: $(ALL_BUILD)
 
 all-push: $(ALL_PUSH)
 
+all-dockerfile: $(ALL_DOCKERFILE)
+
 $(ALL_BUILD):
 	make -C brew/$(@:build-%=%) -f ../../Makefile docker-build
 
@@ -47,10 +50,13 @@ $(ALL_PUSH):
 $(ALL_SHELL):
 	make -C brew/$(@:shell-%=%) -f ../../Makefile docker-shell
 
+$(ALL_DOCKERFILE):
+	make -C brew/$(@:dockerfile-%=%) -f ../../Makefile Dockerfile
+
 node_modules:
 	npm install .
 
-docker-build: print-header
+docker-build: print-header Dockerfile
 	docker build -t brew/$(NAME) .
 
 docker-push: print-header docker-build
@@ -61,6 +67,9 @@ docker-shell: docker-build
 
 docker-labels: docker-build
 	docker inspect -f '{{range $$k,$$v:=.Config.Labels }}{{$$k}}={{$$v}}{{"\n"}}{{end}}' $(NAME)
+
+Dockerfile: Brewfile
+	../../bin/dockerfile $< > $@
 
 print-header:
 	@echo \

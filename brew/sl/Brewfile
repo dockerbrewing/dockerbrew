@@ -3,11 +3,13 @@ name: sl
 desc: Steam Locomotive
 
 cmds:
-  sl: /sl/sl -it -e LINES:$LINES -e COLUMNS:$COLUMNS
+  sl: /sl-cmd -it -e LINES=$LINES -e COLUMNS=$COLUMNS
 
 make:
   from: alpine:3.4
   pkgs: [-build-base, -git, ncurses-dev]
   make:
   - repo: https://github.com/mtoyoda/sl
-    make: make
+    cmds:
+    - make
+    - mv sl /sl-cmd
