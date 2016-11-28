@@ -1,6 +1,6 @@
 ALL_BREW := $(shell echo brew/*)
 ALL_BREW := $(ALL_BREW:brew/%=%)
-ALL_DATA := $(ALL_BREW:%=brew/%/Meta)
+ALL_DATA := $(ALL_BREW:%=brew/%/Brewfile)
 ALL_BUILD := $(ALL_BREW:%=build-%)
 ALL_PUSH := $(ALL_BREW:%=push-%)
 ALL_SHELL := $(ALL_BREW:%=shell-%)
@@ -35,11 +35,11 @@ index: $(ALL_INDEX)
 $(ALL_INDEX): Makefile $(ALL_DATA) node_modules bin/*
 	./bin/$(@:index/%.tsv=%) $(ALL_DATA) > $@
 
-all-build: $(ALL_BUILD)
+all-build: node_modules $(ALL_BUILD)
 
-all-push: $(ALL_PUSH)
+all-push: node_modules $(ALL_PUSH)
 
-all-dockerfile: $(ALL_DOCKERFILE)
+all-dockerfile: node_modules $(ALL_DOCKERFILE)
 
 $(ALL_BUILD):
 	make -C brew/$(@:build-%=%) -f ../../Makefile docker-build
@@ -77,3 +77,6 @@ print-header:
 	@echo = $(NAME)
 	@echo \
 ================================================================================
+
+clean:
+	rm -fr node_modules brew/*/Dockerfile
