@@ -26,6 +26,7 @@ say " && apk add #{install.join " "} \\"
 for step in make
   {repo, cmds, cpanm, rm} = step
   cmds = [cmds] if typeof(cmds) == 'string'
+  cpanm = [cpanm] if typeof(cpanm) == 'string'
   if repo?
     say " && git clone #{repo} \\"
     if cmds?
@@ -36,7 +37,7 @@ for step in make
       say " && rm -fr #{dir} \\"
   if cpanm?
     say " && curl -L https://cpanmin.us | perl - App::cpanminus \\"
-    say " && cpanm -n #{cpanm} \\"
+    say " && cpanm -n #{cpanm.join " "} \\"
 
   if rm?
     say " && rm -fr #{rm} \\"
