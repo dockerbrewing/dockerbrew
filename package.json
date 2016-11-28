@@ -2,6 +2,7 @@
   "dependencies": {
     "coffee-script": "*",
     "lodash": "*",
+    "js-yaml": "*",
     "printf": "*"
   }
 }
