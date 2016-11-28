@@ -71,7 +71,7 @@ cmd:use() {
   assert-image-local
   get-docker-run-cmd "$@"
   local cmd="${option_as:-$name}"
-  echo "$cmd() { $docker_run_command \$@; }"
+  echo "$cmd() { ${docker_run_command[*]} \$@; }"
 }
 
 cmd:cmd() {
@@ -79,7 +79,7 @@ cmd:cmd() {
   get-cmd-name "$@"
   get-docker-run-cmd "$name"
   shift
-  echo "$docker_run_command $*"
+  echo "${docker_run_command[*]} $*"
 }
 
 cmd:run() {
@@ -88,7 +88,9 @@ cmd:run() {
   assert-image-local
   get-docker-run-cmd "$name"
   shift
-  $docker_run_command "$@"
+  export LINES="$(tput lines)"
+  export COLUMNS="$(tput cols)"
+  eval "${docker_run_command[@]}" "$@"
 }
 
 cmd:get() {
@@ -231,7 +233,7 @@ get-docker-run-cmd() {
   local path="$(
     docker inspect -f "{{index .Config.Labels \"com.dockerbrew.cmds.$cmd.path\"}}" "$image"
   )"
-  docker_run_command="docker run ${opts:+$opts }--entrypoint=$path ${image}"
+  docker_run_command=(docker run $opts --entrypoint=$path $image)
 }
 
 get-options() {
