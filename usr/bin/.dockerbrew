@@ -5,9 +5,15 @@ main() {
   [[ $name != .dockerbrew ]] || return 0
   local image="brew/$name"
   local opts="$(
-    docker inspect -f "{{index .Config.Labels \"com.dockerbrew.run.options\"}}" $image
+    docker inspect -f "{{index .Config.Labels \"com.dockerbrew.cmds.$name.opts\"}}" "$image"
   )"
-  docker run ${opts:+$opts }${image} $@
+  local path="$(
+    docker inspect -f "{{index .Config.Labels \"com.dockerbrew.cmds.$name.path\"}}" "$image"
+  )"
+  docker_run_command=(docker run --rm $opts --entrypoint=$path $image)
+  export LINES="$(tput lines)"
+  export COLUMNS="$(tput cols)"
+  eval "${docker_run_command[@]}" "$@"
 }
 
 main "$@"
