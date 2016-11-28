@@ -1,0 +1,25 @@
+brew: 0.0.1
+name: swim
+desc: Perl CPAN Swim CLI
+
+cmds:
+  swim: /usr/local/bin/swim -i -v $PWD:/work
+
+make:
+  from: alpine:3.4
+  pkgs:
+  - bash
+  - -build-base
+  - -curl
+  - git
+  # - openssl
+  # - -openssl-dev
+  - perl
+  - -perl-dev
+  - -wget
+  make:
+  - cpanm: [Swim, Swim::Plugin::badge, Swim::Plugin::cpan, IPC::Run]
+  - rm: /root/.cpanm
+  work: /work
+  vars:
+    PERL5LIB: /local
